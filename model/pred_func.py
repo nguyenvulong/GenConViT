@@ -38,11 +38,11 @@ def face_rec(frames, p=None, klass=None):
     mod = "cnn" if dlib.DLIB_USE_CUDA else "hog"
 
     for _, frame in tqdm(enumerate(frames), total=len(frames)):
+        # save frames to frame.jpg
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         face_locations = face_recognition.face_locations(
             frame, number_of_times_to_upsample=0, model=mod
         )
-
         for face_location in face_locations:
             if count < len(frames):
                 top, right, bottom, left = face_location
@@ -72,12 +72,17 @@ def preprocess_frame(frame):
 
 def pred_vid(df, model):
     with torch.no_grad():
-        return max_prediction_value(torch.sigmoid(model(df).squeeze()))
-
-
+        y_pred = model(df)
+        fake_prob = torch.sigmoid(y_pred)[0][0]
+        return fake_prob, max_prediction_value(torch.sigmoid(y_pred.squeeze()))
+  
 def max_prediction_value(y_pred):
     # Finds the index and value of the maximum prediction value.
     mean_val = torch.mean(y_pred, dim=0)
+    # Check if mean_val element is 1
+    if mean_val.numel() == 1:
+        mean_val = y_pred
+   
     return (
         torch.argmax(mean_val).item(),
         mean_val[0].item()

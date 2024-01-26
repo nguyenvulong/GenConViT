@@ -1,1 +1,6 @@
-*~
+test_videos/*
+temp/*
+*.pyc
+*.pth
+*.mp4
+*.json

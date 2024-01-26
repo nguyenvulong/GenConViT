@@ -241,11 +241,14 @@ def predict(
     df = df_face(vid, num_frames, net)  # extract face from the frames
     if fp16:
         df.half()
-    y, y_val = (
+    fake_prob, (y, y_val) = (
         pred_vid(df, model)
         if len(df) >= 1
         else (torch.tensor(0).item(), torch.tensor(0.5).item())
     )
+    # write filename and fake probability to scores.txt
+    with open("result/scores.txt", "a") as f:
+        f.write(f"{os.path.basename(vid)} {fake_prob}\n")
     result = store_result(
         result, os.path.basename(vid), y, y_val, klass, correct_label, compression
     )
